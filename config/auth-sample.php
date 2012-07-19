@@ -15,7 +15,20 @@ return array(
 				'bindpw'  => '',
 				'filter'  => '(&(objectClass=person)(uid=%u))',
 				'version' => 3,
-				'ssl'     => false
+				'ssl'     => false,
+
+				// Here, define mapping between internal variables and
+				// LDAP attributes.
+				// Add your own internal variables which will be stored
+				// in session and could be retrieve by $auth->get_user()
+				'mapping' => array(
+					'user' => array (
+						'username'  => 'uid',
+						'firstname' => 'sn',
+						'lastname'  => 'cn',
+						'email'     => 'mail'
+					),
+				),
 			),
 
 		),

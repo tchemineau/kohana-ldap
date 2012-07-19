@@ -25,17 +25,6 @@ class Kohana_Auth_Ldap extends Auth
 	}
 
 	/**
-	 * Get the logged in user or return $default if a user is not found
-	 *
-	 * @param   mixed   default
-	 * @return  string
-	 */
-	public function get_user ( $default = NULL )
-	{
-		return null;
-	}
-
-	/**
 	 * Check to see if the user is logged in, and if $role is set,
 	 * has all roles.
 	 *
@@ -90,27 +79,37 @@ class Kohana_Auth_Ldap extends Auth
 				continue;
 			}
 
-			$config = $this->_config['ldap']['server'][$serverid];
-			$config['type'] = 'ldap';
+			$config = $this->_config['ldap']['server'][$serverid] + array('type' => 'ldap');
 			$ldapdb = Database::instance($serverid, $config);
 
 			$query = array(
-				'filter' => isset($config['filter']) ? $config['filter'] : '(&(objectClass=person)(uid=%u))',
+				'filter' => $ldapdb->format_filter(
+					isset($config['filter']) ? $config['filter'] : '(&(objectClass=person)(uid=%u))',
+					array('u' => $username)
+				),
 				'basedn' => isset($config['basedn']) ? $config['basedn'] : 'ou=people,dc=example,dc=org',
-				'scope'  => isset($config['scope'])  ? $config['scope']  : 'one'
+				'scope'  => isset($config['scope']) ? $config['scope'] : 'one',
+				'attributes' => isset($config['mapping']) && isset($config['mapping']['user']) ? $config['mapping']['user'] : array()
 			);
-			$query['filter'] = $ldapdb->format_filter($query['filter'], array('u' => $username));
 
 			$result = $ldapdb->query(Database::SELECT, $query);
 
 			if (is_array($result))
 			{
 				$keys = array_keys($result);
-				$user = $result[$keys[0]]['dn'];
+				$ldapuser = $result[$keys[0]];
 
-				if ($ldapdb->bind($user, $password))
+				if ($ldapdb->bind($ldapuser['dn'], $password))
 				{
-					return $this->complete_login($username);
+					$user = array();
+					foreach ($query['attributes'] as $var => $attr)
+					{
+						if (isset($ldapuser[$attr]))
+						{
+							$user[$var] = $ldapuser[$attr];
+						}
+					}
+					return $this->complete_login($user);
 				}
 			}
 		}

@@ -159,7 +159,16 @@ class Kohana_Database_Ldap extends Database
 				{
 					$query['scope'] = 'one';
 				}
-				$entries = $this->_search($query['filter'], $query['basedn'], $query['scope']);
+				if (!isset($query['attributes']))
+				{
+					$query['attributes'] = array();
+				}
+				$entries = $this->_search(
+					$query['filter'],
+					$query['basedn'],
+					$query['scope'],
+					$query['attributes']
+				);
 				if (is_array($entries))
 				{
 					return $entries;
@@ -267,6 +276,10 @@ class Kohana_Database_Ldap extends Database
 		{
 			$attrs = array( 'dn' );
 		}
+		else
+		{
+			$attrs = array_values($attrs);
+		}
 
 		switch ($scope)
 		{
@@ -295,6 +308,17 @@ class Kohana_Database_Ldap extends Database
 			{
 				if (is_array($values) && !is_null($values['dn']))
 				{
+					foreach ($values as $k => $v)
+					{
+						if (is_numeric($k))
+						{
+							unset($values[$k]);
+						}
+						else if (is_array($v) && isset($v['count']))
+						{
+							unset($values[$k]['count']);
+						}
+					}
 					$entriesb[$values['dn']] = $values;
 					unset($entriesb[$values['dn']]['count']);
 				}
