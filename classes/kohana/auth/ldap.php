@@ -13,6 +13,75 @@ class Kohana_Auth_Ldap extends Auth
 {
 
 	/**
+	 * LDAP database parameters.
+	 */
+	private $_ldap = array ();
+
+	/**
+	 * Loads LDAP configuration parameter from database config.
+	 *
+	 * @param   array   $config   LDAP auth configuration
+	 * @return  void
+	 */
+	public function __construct ( $config = array() )
+	{
+		parent::__construct($config);
+
+		// Set default values.
+		if (!isset($this->_config['ldap']))
+		{
+			$this->_config['ldap'] = array ();
+		}
+		if (!isset($this->_config['ldap']['order']))
+		{
+			$this->_config['ldap']['order'] = array('default');
+		}
+		if (!is_array($this->_config['ldap']['order']))
+		{
+			$this->_config['ldap']['order'] = array($this->_config['ldap']['order']);
+		}
+
+		// Get LDAP database and store configuration
+		foreach ($this->_config['ldap']['order'] as $ldap)
+		{
+			$config = Kohana::$config->load('database')->get($ldap);
+			if (!is_null($config))
+			{
+				// Do not considere an LDAP server if its search user config is not found
+				if (!isset($config['search']) || !isset($config['search']['user']))
+				{
+					continue;
+				}
+
+				// Default values
+				if (!isset($config['search']['user']['filter']))
+				{
+					$config['search']['user']['filter'] = '(&(objectClass=person)(uid=%u))';
+				}
+				if (!isset($config['search']['user']['basedn']))
+				{
+					$config['search']['user']['basedn'] = 'ou=people,dc=example,dc=org';
+				}
+				if (!isset($config['search']['user']['scope']))
+				{
+					$config['search']['user']['scope'] = 'one';
+				}
+				if (!isset($config['mapping']))
+				{
+					$config['mapping'] = array();
+				}
+				if (!isset($config['mapping']['user']))
+				{
+					$config['search']['user']['filter'] = array();
+				}
+
+				// Store config
+				$this->_ldap[$ldap] = $config;
+			}
+		}
+	}
+
+	/**
 	 * Most of the time, it is not possible to retrieve a password
 	 * from a user into a LDAP directory.
 	 *
@@ -58,51 +127,26 @@ class Kohana_Auth_Ldap extends Auth
 	 */
 	protected function _login ( $username, $password, $remember )
 	{
-		if (!isset($this->_config['ldap']) && !isset($this->_config['ldap']['server']))
+		foreach ($this->_ldap as $serverid => $config)
 		{
-			return FALSE;
-		}
-
-		if (!isset($this->_config['ldap']['order']))
-		{
-			$this->_config['ldap']['order'] = array('default');
-		}
-		if (!is_array($this->_config['ldap']['order']))
-		{
-			$this->_config['ldap']['order'] = array($this->_config['ldap']['order']);
-		}
-
-		foreach ($this->_config['ldap']['order'] as $serverid)
-		{
-			if (!isset($this->_config['ldap']['server'][$serverid]))
-			{
-				continue;
-			}
-
-			$config = $this->_config['ldap']['server'][$serverid] + array('type' => 'ldap');
 			$ldapdb = Database::instance($serverid, $config);
-
-			$query = array(
-				'filter' => $ldapdb->format_filter(
-					isset($config['filter']) ? $config['filter'] : '(&(objectClass=person)(uid=%u))',
-					array('u' => $username)
-				),
-				'basedn' => isset($config['basedn']) ? $config['basedn'] : 'ou=people,dc=example,dc=org',
-				'scope'  => isset($config['scope']) ? $config['scope'] : 'one',
-				'attributes' => isset($config['mapping']) && isset($config['mapping']['user']) ? $config['mapping']['user'] : array()
+			$ldapquery = array (
+				'filter' => $ldapdb->format_filter($config['search']['user']['filter'], array('u' => $username)),
+				'basedn' => $config['search']['user']['basedn'],
+				'scope'  => $config['search']['user']['scope'],
+				'attributes' => $config['mapping']['user']
 			);
+			$ldapresult = $ldapdb->query(Database::SELECT, $ldapquery);
 
-			$result = $ldapdb->query(Database::SELECT, $query);
-
-			if (is_array($result))
+			if (is_array($ldapresult))
 			{
-				$keys = array_keys($result);
-				$ldapuser = $result[$keys[0]];
+				$keys = array_keys($ldapresult);
+				$ldapuser = $ldapresult[$keys[0]];
 
 				if ($ldapdb->bind($ldapuser['dn'], $password))
 				{
 					$user = array();
-					foreach ($query['attributes'] as $var => $attr)
+					foreach ($ldapquery['attributes'] as $var => $attr)
 					{
 						if (isset($ldapuser[$attr]))
 						{

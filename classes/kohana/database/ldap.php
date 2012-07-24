@@ -39,43 +39,43 @@ class Kohana_Database_Ldap extends Database
 		{
 			return TRUE;
 		}
-		if (!isset($this->_config['uri']))
+		if (!isset($this->_config['connection']) || !isset($this->_config['connection']['uri']))
 		{
 			return FALSE;
 		}
-		if (isset($this->_config['ssl']) && $this->_config['ssl'])
+		if (isset($this->_config['connection']['ssl']) && $this->_config['connection']['ssl'])
 		{
-			$this->_connection = @ldap_connect($this->_config['uri']);
+			$this->_connection = @ldap_connect($this->_config['connection']['uri']);
 			if ($this->_connection && !@ldap_start_tls($this->_connection))
 			{
 				$this->disconnect();
-				$uri = 'ldaps://' . preg_replace('#ldaps?://#', '', $this->_config['uri']);
+				$uri = 'ldaps://' . preg_replace('#ldaps?://#', '', $this->_config['connection']['uri']);
 				if (preg_match('/:[0-9]+/', $uri) == 0)
 				{
-					$this->_config['uri'] = ':636';
+					$this->_config['connection']['uri'] = ':636';
 				}
 			}
 		}
 		if (!$this->_connection)
 		{
-			$this->_connection = @ldap_connect($this->_config['uri']);
+			$this->_connection = @ldap_connect($this->_config['connection']['uri']);
 		}
 		if ($this->_connection === false)
 		{
 			return FALSE;
 		}
-		if (!isset($this->_config['version']))
+		if (!isset($this->_config['connection']['version']))
 		{
-			$this->_config['version'] = 3;
+			$this->_config['connection']['version'] = 3;
 		}
-		if ($this->_config['version'] == 3)
+		if ($this->_config['connection']['version'] == 3)
 		{
 			ldap_set_option($this->_connection, LDAP_OPT_PROTOCOL_VERSION, 3) ;
 		}
-		if (isset($this->_config['binddn']) && isset($this->_config['bindpw']))
+		if (isset($this->_config['connection']['binddn']) && isset($this->_config['connection']['bindpw']))
 		{
-			$binddn = is_null($this->_config['binddn']) ? '' : $this->_config['binddn'];
-			$bindpw = is_null($this->_config['bindpw']) ? '' : $this->_config['bindpw'];
+			$binddn = is_null($this->_config['connection']['binddn']) ? '' : $this->_config['connection']['binddn'];
+			$bindpw = is_null($this->_config['connection']['bindpw']) ? '' : $this->_config['connection']['bindpw'];
 			if (strlen($binddn) > 0 && strlen($bindpw) > 0 && !@ldap_bind($this->_connection, $binddn, $bindpw))
 			{
 				return FALSE;
