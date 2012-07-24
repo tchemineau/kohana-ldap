@@ -45,7 +45,7 @@ class Kohana_Auth_Ldap extends Auth
 		foreach ($this->_config['ldap']['order'] as $ldap)
 		{
 			$config = Kohana::$config->load('database')->get($ldap);
-			if (!is_null($config))
+			if (!is_null($config) && isset($config['type']) && strcasecmp('ldap', $config['type']) == 0)
 			{
 				// Do not considere an LDAP server if its search user config is not found
 				if (!isset($config['search']) || !isset($config['search']['user']))
