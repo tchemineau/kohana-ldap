@@ -84,11 +84,11 @@ class Kohana_Model_Ldap_User extends Model
 				'_name' => $this->_database->get_name()
 			);
 
-			foreach ($attributes as $var => $attr)
+			foreach ($attributes as $attr)
 			{
 				if (isset($ldapdata[$attr]))
 				{
-					$data[$var] = $ldapdata[$attr];
+					$data[$attr] = $ldapdata[$attr];
 				}
 			}
 
