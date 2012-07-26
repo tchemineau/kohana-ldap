@@ -53,6 +53,13 @@ class Kohana_Model_Ldap_User extends Model
 		{
 			return $this->_data;
 		}
+		if (isset($data['_type']) && strcasecmp($data['_type'], 'ldap') == 0)
+		{
+			if (is_null($this->_database) && isset($data['_name']))
+			{
+				$this->_database = Database::instance($data['_name']);
+			}
+		}
 		$this->_data = $data;
 		return $this;
 	}
