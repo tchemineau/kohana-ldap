@@ -41,6 +41,10 @@ class Kohana_Auth_Ldap extends Auth
 		{
 			$this->_config['ldap']['order'] = array($this->_config['ldap']['order']);
 		}
+		if (!isset($this->_config['ldap']['force']))
+		{
+			$this->_config['ldap']['force'] = false;
+		}
 
 		// Get LDAP database and store configuration
 		foreach ($this->_config['ldap']['order'] as $ldap)
@@ -106,7 +110,7 @@ class Kohana_Auth_Ldap extends Auth
 				->database($ldapdb)
 				->get($username);
 
-			if ($ldapuser && $ldapuser->authenticate($password))
+			if ($ldapuser && ($this->_config['ldap']['force'] || $ldapuser->authenticate($password)))
 			{
 				return $this->complete_login($ldapuser->data());
 			}
