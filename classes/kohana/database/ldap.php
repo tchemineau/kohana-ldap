@@ -3,10 +3,10 @@
 /**
  * LDAP database class.
  *
- * @package     Kohana/Auth-LDAP
- * @author      Thomas Chemineau - thomas.chemineau@gmail.com
- * @copyright   (c) 2007-2012 Kohana Team
- * @license     http://kohanaframework.org/license
+ * @package    Kohana/LDAP
+ * @author     Thomas Chemineau - thomas.chemineau@gmail.com
+ * @copyright (c) 2007-2012 Thomas Chemineau
+ * @license    http://kohanaframework.org/license
  */
 class Kohana_Database_Ldap extends Database
 {
@@ -25,6 +25,16 @@ class Kohana_Database_Ldap extends Database
 			return FALSE;
 		}
 		return @ldap_bind($this->_connection, $dn, $password);
+	}
+
+	/**
+	 * Get configuration.
+	 *
+	 * @return array
+	 */
+	public function config ()
+	{
+		return $this->_config;
 	}
 
 	/**

@@ -1,13 +1,14 @@
 <?php defined('SYSPATH') or die('No direct access allowed.');
 
 /**
- * LDAP Auth driver.
- * [!!] this Auth driver does not support roles nor autologin.
+ * LDAP auth driver.
+ * This auth driver does not support roles nor autologin.
  *
- * @package	Kohana/Auth-LDAP
- * @author	 Thomas Chemineau - thomas.chemineau@gmail.com
- * @copyright  (c) 2007-2012 Kohana Team
- * @license	http://kohanaframework.org/license
+ * @package   Kohana/LDAP
+ * @author    Thomas Chemineau - thomas.chemineau@gmail.com
+ * @copyright (c) 2007-2012 Thomas Chemineau
+ * @copyright (c) 2007-2012 Kohana Team
+ * @license   http://kohanaframework.org/license
  */
 class Kohana_Auth_Ldap extends Auth
 {
@@ -130,31 +131,13 @@ class Kohana_Auth_Ldap extends Auth
 		foreach ($this->_ldap as $serverid => $config)
 		{
 			$ldapdb = Database::instance($serverid, $config);
-			$ldapquery = array (
-				'filter' => $ldapdb->format_filter($config['search']['user']['filter'], array('u' => $username)),
-				'basedn' => $config['search']['user']['basedn'],
-				'scope'  => $config['search']['user']['scope'],
-				'attributes' => $config['mapping']['user']
-			);
-			$ldapresult = $ldapdb->query(Database::SELECT, $ldapquery);
+			$ldapuser = Model::factory('Ldap_User')
+				->database($ldapdb)
+				->get($username);
 
-			if (is_array($ldapresult))
+			if ($ldapuser && $ldapuser->authenticate($password))
 			{
-				$keys = array_keys($ldapresult);
-				$ldapuser = $ldapresult[$keys[0]];
-
-				if ($ldapdb->bind($ldapuser['dn'], $password))
-				{
-					$user = array();
-					foreach ($ldapquery['attributes'] as $var => $attr)
-					{
-						if (isset($ldapuser[$attr]))
-						{
-							$user[$var] = $ldapuser[$attr];
-						}
-					}
-					return $this->complete_login($user);
-				}
+				return $this->complete_login($ldapuser->data());
 			}
 		}
 
