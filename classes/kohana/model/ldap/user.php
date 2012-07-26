@@ -75,24 +75,7 @@ class Kohana_Model_Ldap_User extends Model
 
 		if (is_array($result))
 		{
-			$keys = array_keys($result);
-			$ldapdata = $result[$keys[0]];
-
-			$data = array(
-				'_dn' => $ldapdata['dn'],
-				'_type' => 'ldap',
-				'_name' => $this->_database->get_name()
-			);
-
-			foreach ($attributes as $attr)
-			{
-				if (isset($ldapdata[$attr]))
-				{
-					$data[$attr] = $ldapdata[$attr];
-				}
-			}
-
-			return $data;
+			return $this->parse_result($result, $attributes);
 		}
 
 		return FALSE;
@@ -176,27 +159,48 @@ class Kohana_Model_Ldap_User extends Model
 
 		if (is_array($result))
 		{
-			$keys = array_keys($result);
-			$ldapdata = $result[$keys[0]];
-
-			$data = array(
-				'_dn' => $ldapdata['dn'],
-				'_type' => 'ldap',
-				'_name' => $this->_database->get_name()
-			);
-			foreach ($query['attributes'] as $var => $attr)
-			{
-				if (isset($ldapdata[$attr]))
-				{
-					$data[$var] = $ldapdata[$attr];
-				}
-			}
-
+			$data = $this->parse_result($result, $query['attributes']);
 			$user = new self();
 			return $user->database($this->_database)->data($data);
 		}
 
 		return FALSE;
+	}
+
+	/**
+	 * Parse result.
+	 *
+	 * @param   array   result
+	 * @return  array
+	 */
+	public function parse_result ( $result, $attributes )
+	{
+		$keys = array_keys($result);
+		$ldapdata = $result[$keys[0]];
+
+		$data = array(
+			'_dn' => $ldapdata['dn'],
+			'_type' => 'ldap',
+			'_name' => $this->_database->get_name()
+		);
+
+		foreach ($attributes as $var => $attr)
+		{
+			if (!isset($ldapdata[$attr]))
+			{
+				continue;
+			}
+			if (is_numeric($var))
+			{
+				$data[$attr] = $ldapdata[$attr];
+			}
+			else
+			{
+				$data[$var] = $ldapdata[$attr];
+			}
+		}
+
+		return $data;
 	}
 
 } // End Model_Ldap_User
