@@ -33,12 +33,12 @@ class Kohana_Model_Ldap_User extends Model
 	 */
 	public function authenticate ( $password )
 	{
-		if (is_null($this->_data) || !isset($this->_data['dn']))
+		if (is_null($this->_data) || !isset($this->_data['_dn']))
 		{
 			return FALSE;
 		}
 
-		return $this->_database->bind($this->_data['dn'], $password);
+		return $this->_database->bind($this->_data['_dn'], $password);
 	}
 
 	/**
@@ -98,7 +98,8 @@ class Kohana_Model_Ldap_User extends Model
 			$ldapdata = $result[$keys[0]];
 
 			$data = array(
-				'dn' => $ldapdata['dn'],
+				'_dn' => $ldapdata['dn'],
+				'_type' => 'ldap'
 			);
 			foreach ($query['attributes'] as $var => $attr)
 			{
