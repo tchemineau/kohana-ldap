@@ -81,7 +81,7 @@ class Kohana_Model_Ldap_User extends Model
 	 */
 	public function get ( $username )
 	{
-		$config = $this->_database->config();
+		$config = $this->_database->get_config();
 
 		$query = array (
 			'filter' => $this->_database->format_filter($config['search']['user']['filter'], array('u' => $username)),
@@ -99,7 +99,8 @@ class Kohana_Model_Ldap_User extends Model
 
 			$data = array(
 				'_dn' => $ldapdata['dn'],
-				'_type' => 'ldap'
+				'_type' => 'ldap',
+				'_name' => $this->_database->get_name()
 			);
 			foreach ($query['attributes'] as $var => $attr)
 			{

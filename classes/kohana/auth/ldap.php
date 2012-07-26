@@ -48,35 +48,6 @@ class Kohana_Auth_Ldap extends Auth
 			$config = Kohana::$config->load('database')->get($ldap);
 			if (!is_null($config) && isset($config['type']) && strcasecmp('ldap', $config['type']) == 0)
 			{
-				// Do not considere an LDAP server if its search user config is not found
-				if (!isset($config['search']) || !isset($config['search']['user']))
-				{
-					continue;
-				}
-
-				// Default values
-				if (!isset($config['search']['user']['filter']))
-				{
-					$config['search']['user']['filter'] = '(&(objectClass=person)(uid=%u))';
-				}
-				if (!isset($config['search']['user']['basedn']))
-				{
-					$config['search']['user']['basedn'] = 'ou=people,dc=example,dc=org';
-				}
-				if (!isset($config['search']['user']['scope']))
-				{
-					$config['search']['user']['scope'] = 'one';
-				}
-				if (!isset($config['mapping']))
-				{
-					$config['mapping'] = array();
-				}
-				if (!isset($config['mapping']['user']))
-				{
-					$config['search']['user']['filter'] = array();
-				}
-
-				// Store config
 				$this->_ldap[$ldap] = $config;
 			}
 		}

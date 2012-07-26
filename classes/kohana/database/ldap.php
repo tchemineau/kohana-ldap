@@ -12,6 +12,49 @@ class Kohana_Database_Ldap extends Database
 {
 
 	/**
+	 * Initialize default parameters and call Database constructor.
+	 *
+	 * @return  void
+	 */
+	protected function __construct ( $name, array $config )
+	{
+		// Search parameters
+		if (!isset($config['search']))
+		{
+			$config['search'] = array ();
+		}
+		if (!isset($config['search']['user']))
+		{
+			$config['search']['user'] = array ();
+		}
+		if (!isset($config['search']['user']['filter']))
+		{
+			$config['search']['user']['filter'] = '(&(objectClass=person)(uid=%u))';
+		}
+		if (!isset($config['search']['user']['basedn']))
+		{
+			$config['search']['user']['basedn'] = 'ou=people,dc=example,dc=org';
+		}
+		if (!isset($config['search']['user']['scope']))
+		{
+			$config['search']['user']['scope'] = 'one';
+		}
+
+		// Mapping parameters
+		if (!isset($config['mapping']))
+		{
+			$config['mapping'] = array();
+		}
+		if (!isset($config['mapping']['user']))
+		{
+			$config['mapping']['user'] = array();
+		}
+
+		// Call parent contructor
+		parent::__construct($name, $config);
+	}
+
+	/**
 	 * Bind to a given user.
 	 *
 	 * @param   string  User DN
@@ -25,16 +68,6 @@ class Kohana_Database_Ldap extends Database
 			return FALSE;
 		}
 		return @ldap_bind($this->_connection, $dn, $password);
-	}
-
-	/**
-	 * Get configuration.
-	 *
-	 * @return array
-	 */
-	public function config ()
-	{
-		return $this->_config;
 	}
 
 	/**
@@ -127,6 +160,26 @@ class Kohana_Database_Ldap extends Database
 		}
 		return $filter;
 	}
+
+	/**
+	 * Get configuration.
+	 *
+	 * @return array
+	 */
+	public function get_config ()
+	{
+		return $this->_config;
+	}
+
+        /**
+         * Get instance name.
+         *
+         * @return string
+         */
+        public function get_name ()
+        {
+                return $this->_instance;
+        }
 
 	/**
 	 * Perform a LDAP query of the given type.
