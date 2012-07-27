@@ -94,14 +94,12 @@ class Kohana_Auth_Ldap extends Auth
 	}
 
 	/**
-	 * Authenticate a user against an LDAP directory.
+	 * Get LDAP user.
 	 *
 	 * @param   string   $username
-	 * @param   string   $password
-	 * @param   boolean  $remember   Enable autologin (not supported)
-	 * @return  boolean
+	 * @param   Model_Ldap_User
 	 */
-	protected function _login ( $username, $password, $remember )
+	protected function _get_ldap_user ( $username )
 	{
 		foreach ($this->_ldap as $serverid => $config)
 		{
@@ -110,10 +108,30 @@ class Kohana_Auth_Ldap extends Auth
 				->database($ldapdb)
 				->get($username);
 
-			if ($ldapuser && ($this->_config['ldap']['force'] || $ldapuser->authenticate($password)))
+			if ($ldapuser)
 			{
-				return $this->complete_login($ldapuser->data());
+				return $ldapuser;
 			}
+		}
+		return FALSE;
+	}
+
+	/**
+	 * Authenticate a user against an LDAP directory.
+	 *
+	 * @param   string   $username
+	 * @param   string   $password
+	 * @param   boolean  $remember   Enable autologin (no password check)
+	 * @return  boolean
+	 */
+	protected function _login ( $username, $password, $remember )
+	{
+		$remember = $this->_config['ldap']['force'] || $remember;
+		$ldapuser = $this->_get_ldap_user($username);
+
+		if ($ldapuser && ($remember || $ldapuser->authenticate($password)))
+		{
+			return $this->complete_login($ldapuser->data());
 		}
 
 		return FALSE;
