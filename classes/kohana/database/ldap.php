@@ -171,15 +171,58 @@ class Kohana_Database_Ldap extends Database
 		return $this->_config;
 	}
 
-        /**
-         * Get instance name.
-         *
-         * @return string
-         */
-        public function get_name ()
-        {
-                return $this->_instance;
-        }
+	/**
+	 * Get instance name.
+	 *
+	 * @return string
+	 */
+	public function get_name ()
+	{
+		return $this->_instance;
+	}
+
+	/**
+	 * Parse result.
+	 *
+	 * @param   array   result
+	 * @param   array   attributes
+	 * @param   boolean dn
+	 * @return  array
+	 */
+	public function parse_result ( $result, $attributes )
+	{
+		$keys = array_keys($result);
+		$data = array();
+
+		foreach ($result as $key => $ldapdata)
+		{
+			$values = array(
+				'_dn' => $ldapdata['dn'],
+				'_type' => 'ldap',
+				'_name' => $this->get_name()
+			);
+
+			foreach ($attributes as $var => $attr)
+			{
+				if (!isset($ldapdata[$attr]))
+				{
+					continue;
+				}
+				if (is_numeric($var))
+				{
+					$values[$attr] = $ldapdata[$attr];
+				}
+				else
+				{
+					$values[$var] = $ldapdata[$attr];
+				}
+			}
+
+			$data[] = $values;
+		}
+
+		return $data;
+	}
 
 	/**
 	 * Perform a LDAP query of the given type.
