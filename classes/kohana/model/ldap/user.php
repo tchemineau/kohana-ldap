@@ -158,7 +158,7 @@ class Kohana_Model_Ldap_User extends Model
 
 		$result = $this->_database->query(Database::SELECT, $query);
 
-		if (is_array($result))
+		if (is_array($result) && sizeof($result) > 0)
 		{
 			$data = $this->_database->parse_result($result, $query['attributes']);
 			$user = new self();
