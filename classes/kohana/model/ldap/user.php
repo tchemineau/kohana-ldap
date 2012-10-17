@@ -139,22 +139,10 @@ class Kohana_Model_Ldap_User extends Model
 				'filter' => '(objectClass=top)',
 				'basedn' => $username,
 				'scope'  => 'base',
-				'attributes' => $config['mapping']['user']
 			);
 		}
-		else
-		{
-			$filter = $this->_database->format_filter(
-				$config['search']['user']['filter'],
-				array('u' => $username)
-			);
-			$query = array (
-				'filter' => $filter,
-				'basedn' => $config['search']['user']['basedn'],
-				'scope'  => $config['search']['user']['scope'],
-				'attributes' => $config['mapping']['user']
-			);
-		}
+
+		$query = $this->_database->prepare_query_user($query, array('u' => $username));
 
 		$result = $this->_database->query(Database::SELECT, $query);
 
