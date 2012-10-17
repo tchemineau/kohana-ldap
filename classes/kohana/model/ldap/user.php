@@ -132,6 +132,7 @@ class Kohana_Model_Ldap_User extends Model
 	public function get ( $username, $dn = false )
 	{
 		$config = $this->_database->get_config();
+		$query = array();
 
 		if ($dn)
 		{
