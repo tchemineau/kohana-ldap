@@ -225,6 +225,45 @@ class Kohana_Database_Ldap extends Database
 	}
 
 	/**
+	 * Prepare user query
+	 *
+	 * @param {array} $query
+	 * @param {array} $params Some variables which could be used to prepare query
+	 * @return {array}
+	 */
+	public function prepare_query_user ( $query, $params = array() )
+	{
+		// Check search filter
+		if (!isset($query['filter']))
+		{
+			$query['filter'] = $this->format_filter(
+				$this->_config['search']['user']['filter'],
+				$params
+			);
+		}
+
+		// Check base DN
+		if (!isset($query['basedn']))
+		{
+			$query['basedn'] = $this->_config['search']['user']['basedn'];
+		}
+
+		// Check search scope
+		if (!isset($query['scope']))
+		{
+			$query['scope'] = $this->_config['search']['user']['scope'];
+		}
+
+		// Check attributes
+		if (!isset($query['attributes']))
+		{
+			$query['attributes'] = $this->_config['mapping']['user'];
+		}
+
+		return $query;
+	}
+
+	/**
 	 * Perform a LDAP query of the given type.
 	 *
 	 *     // Make a SEARCH query and use objects for results
