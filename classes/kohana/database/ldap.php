@@ -16,7 +16,7 @@ class Kohana_Database_Ldap extends Database
 	 *
 	 * @return  void
 	 */
-	protected function __construct ( $name, array $config )
+	public function __construct ( $name, array $config )
 	{
 		// Search parameters
 		if (!isset($config['search']))
